@@ -62,9 +62,8 @@ print('[Predlozhka]Объявление функций и обработчико
 
 # Действия при команде /start
 def start(update: Update, context: CallbackContext): # Действия при команде /start
-    print(f'[Predlozhka][start]Сработало сообщение команды запуска от пользователя {update.effective_user.username}({update.effective_user.id})')
-    if User(update.effective_user.id).user_id == 5064187065: # Реагирование на ОСОБОГО пользователя
-        print("[Predlozhka]ВНИМАНИЕ!!!! ЭТО ОНА!!! ЭТО ОНА!!! ЭТО ОНА!!! ЭТО ОНА!!! ЭТО ОНА!!! ЭТО ОНА!!! ЭТО ОНА!!! ЭТО ОНА!!! ЭТО ОНА!!! ЭТО ОНА!!! ЭТО ОНА!!! ЭТО ОНА!!! ЭТО ОНА!!! ЭТО ОНА!!! ЭТО ОНА!!! ЭТО ОНА!!! ЭТО ОНА!!!")
+    user_name = f'{update.effective_user.first_name} {update.effective_user.last_name}'
+    print(f'[Predlozhka][start]Сработало сообщение команды запуска от пользователя {user_name}({update.effective_user.id})')
     db = Session()
     if not db.query(User).filter_by(user_id=update.effective_user.id).first():
         db.add(User(update.effective_user.id))
@@ -103,24 +102,22 @@ def initialize(update: Update, context: CallbackContext):
 
 # Получение поста
 def photo_handler(update: Update, context: CallbackContext):
-    print('[Predlozhka][photo_handler]Image accepted, downloading...')
+    print('[Predlozhka][photo_handler]Изображение получено, скачиваем...')
     db = Session()
     photo = update.message.photo[-1].get_file()
     path = 'temp/{}_{}'.format(random.randint(1, 100000000000), photo.file_path.split('/')[-1])
     photo.download(path)
-
-    print(f'[Predlozhka][photo_handler]Изображение от {update.effective_user.username} ({update.effective_user.id}) скачивается, генерируется пост...')
-    post = Post(update.effective_user.id, path, update.message.caption, update.effective_user.username)
+    print(f'[Predlozhka][photo_handler]Изображение от {update.effective_user.first_name} ({update.effective_user.id}) скачивается, генерируется пост...')
+    post = Post(update.effective_user.id, path, update.message.caption, update.effective_user.first_name)
     db.add(post)
     db.commit()
-
     print('[Predlozhka][photo_handler]Отправка сообщения администратору...')
     buttons = [
         [InlineKeyboardButton('✅', callback_data=json.dumps({'post': post.post_id, 'action': 'accept'})),
          InlineKeyboardButton('❌', callback_data=json.dumps({'post': post.post_id, 'action': 'decline'}))]
     ]
     updater.bot.send_photo(db.query(User).filter_by(is_admin=True).first().user_id, open(post.attachment_path, 'rb'),
-                           f"{post.text}\n\nПост от {update.effective_user.username} ({update.effective_user.id})", reply_markup=InlineKeyboardMarkup(buttons))
+                           f"{post.text}\n\nПост от {update.effective_user.first_name} ({update.effective_user.id})", reply_markup=InlineKeyboardMarkup(buttons))
     db.close()
 
     print('[Predlozhka][photo_handler]Sending confirmation to source...')
@@ -140,9 +137,9 @@ def callback_handler(update: Update, context: CallbackContext):
             if data['action'] == 'accept':
                 print('[Predlozhka][callback_handler]Действие: принять')
                 if post.text is None:
-                    updater.bot.send_photo(target_channel, open(post.attachment_path, 'rb'), caption=f"Пост от {post.owner_un}")
+                    updater.bot.send_photo(target_channel, open(post.attachment_path, 'rb'), caption=f"Пост от {post.owner_name}")
                 else:
-                    updater.bot.send_photo(target_channel, open(post.attachment_path, 'rb'), caption=f"{post.text} \n \n Пост от {post.owner_un}")
+                    updater.bot.send_photo(target_channel, open(post.attachment_path, 'rb'), caption=f"{post.text} \n \n Пост от {post.owner_name}")
                 update.callback_query.answer('✅ Пост успешно отправлен')
                 updater.bot.send_message(post.owner_id, 'Предложеный вами пост был опубликован')
             elif data['action'] == 'decline':

@@ -24,20 +24,20 @@ class Post(Base):
     owner_id = Column(Integer)
     attachment_path = Column(String)
     text = Column(String)
-    owner_un = Column(String)
+    owner_name = Column(String)
 
-    def __init__(self, owner_id, attachment_path, text, owner_un):
+    def __init__(self, owner_id, attachment_path, text, owner_name):
         self.owner_id = owner_id
         self.attachment_path = attachment_path
         self.text = text
-        self.owner_un = owner_un
+        self.owner_name = owner_name
 
     def __repr__(self):
-        return '<Post(post_id={}, owner_id={}, attachment_filename={}, text={}, owner_un={}>'.format(self.post_id,
+        return '<Post(post_id={}, owner_id={}, attachment_filename={}, text={}, owner_name={}>'.format(self.post_id,
                                                                                         self.owner_id,
                                                                                         self.attachment_path,
                                                                                         self.text,
-                                                                                        self.owner_un)
+                                                                                        self.owner_name)
 
 
 class Settings(Base):
