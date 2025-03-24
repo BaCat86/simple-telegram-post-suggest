@@ -25,19 +25,22 @@ class Post(Base):
     attachment_path = Column(String)
     text = Column(String)
     owner_name = Column(String)
+    file_type = Column(String)
 
-    def __init__(self, owner_id, attachment_path, text, owner_name):
+    def __init__(self, owner_id, attachment_path, text, owner_name, file_type):
         self.owner_id = owner_id
         self.attachment_path = attachment_path
         self.text = text
         self.owner_name = owner_name
+        self.file_type = file_type
 
     def __repr__(self):
-        return '<Post(post_id={}, owner_id={}, attachment_filename={}, text={}, owner_name={}>'.format(self.post_id,
+        return '<Post(post_id={}, owner_id={}, attachment_filename={}, text={}, owner_name={}, file_type={}>'.format(self.post_id,
                                                                                         self.owner_id,
                                                                                         self.attachment_path,
                                                                                         self.text,
-                                                                                        self.owner_name)
+                                                                                        self.owner_name,
+                                                                                        self.file_type)
 
 
 class Settings(Base):

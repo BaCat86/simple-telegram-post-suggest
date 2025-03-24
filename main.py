@@ -108,7 +108,7 @@ def photo_handler(update: Update, context: CallbackContext):
     path = 'temp/{}_{}'.format(random.randint(1, 100000000000), photo.file_path.split('/')[-1])
     photo.download(path)
     print(f'[Predlozhka][photo_handler]Изображение от {update.effective_user.first_name} ({update.effective_user.id}) скачивается, генерируется пост...')
-    post = Post(update.effective_user.id, path, update.message.caption, update.effective_user.first_name)
+    post = Post(update.effective_user.id, path, update.message.caption, update.effective_user.first_name, 'img')
     db.add(post)
     db.commit()
     print('[Predlozhka][photo_handler]Отправка сообщения администратору...')
@@ -117,6 +117,78 @@ def photo_handler(update: Update, context: CallbackContext):
          InlineKeyboardButton('❌', callback_data=json.dumps({'post': post.post_id, 'action': 'decline'}))]
     ]
     updater.bot.send_photo(db.query(User).filter_by(is_admin=True).first().user_id, open(post.attachment_path, 'rb'),
+                           f"{post.text}\n\nПост от {update.effective_user.first_name} ({update.effective_user.id})", reply_markup=InlineKeyboardMarkup(buttons))
+    db.close()
+
+    print('[Predlozhka][photo_handler]Sending confirmation to source...')
+    update.message.reply_text('Ваш пост отправлен администратору.\nЕсли он будет опубликован - вы получите сообщение.')
+
+def data_handler(update: Update, context: CallbackContext):
+    print('[Predlozhka][photo_handler]Файл получен, скачиваем...')
+    db = Session()
+    file = update.message.document
+    # photo = update.message.photo[-1].get_file()
+    # path = 'temp/{}_{}'.format(random.randint(1, 100000000000), photo.file_path.split('/')[-1])
+    # photo.download(path)
+    path = context.bot.get_file(file.file_id).download('temp/' + file.file_name)
+    print(f'[Predlozhka][photo_handler]Изображение от {update.effective_user.first_name} ({update.effective_user.id}) скачивается, генерируется пост...')
+    post = Post(update.effective_user.id, path, update.message.caption, update.effective_user.first_name, 'file')
+    db.add(post)
+    db.commit()
+    print('[Predlozhka][photo_handler]Отправка сообщения администратору...')
+    buttons = [
+        [InlineKeyboardButton('✅', callback_data=json.dumps({'post': post.post_id, 'action': 'accept'})),
+         InlineKeyboardButton('❌', callback_data=json.dumps({'post': post.post_id, 'action': 'decline'}))]
+    ]
+    updater.bot.send_document(db.query(User).filter_by(is_admin=True).first().user_id, open(post.attachment_path, 'rb'),
+                           f"{post.text}\n\nПост от {update.effective_user.first_name} ({update.effective_user.id})", reply_markup=InlineKeyboardMarkup(buttons))
+    db.close()
+
+    print('[Predlozhka][photo_handler]Sending confirmation to source...')
+    update.message.reply_text('Ваш пост отправлен администратору.\nЕсли он будет опубликован - вы получите сообщение.')
+
+def video_handler(update: Update, context: CallbackContext):
+    print('[Predlozhka][photo_handler]Файл получен, скачиваем...')
+    db = Session()
+    file = update.message.video
+    # photo = update.message.photo[-1].get_file()
+    # path = 'temp/{}_{}'.format(random.randint(1, 100000000000), photo.file_path.split('/')[-1])
+    # photo.download(path)
+    path = context.bot.get_file(file.file_id).download('temp/' + file.file_name)
+    print(f'[Predlozhka][photo_handler]Изображение от {update.effective_user.first_name} ({update.effective_user.id}) скачивается, генерируется пост...')
+    post = Post(update.effective_user.id, path, update.message.caption, update.effective_user.first_name, 'video')
+    db.add(post)
+    db.commit()
+    print('[Predlozhka][photo_handler]Отправка сообщения администратору...')
+    buttons = [
+        [InlineKeyboardButton('✅', callback_data=json.dumps({'post': post.post_id, 'action': 'accept'})),
+         InlineKeyboardButton('❌', callback_data=json.dumps({'post': post.post_id, 'action': 'decline'}))]
+    ]
+    updater.bot.send_video(db.query(User).filter_by(is_admin=True).first().user_id, open(post.attachment_path, 'rb'),
+                           f"{post.text}\n\nПост от {update.effective_user.first_name} ({update.effective_user.id})", reply_markup=InlineKeyboardMarkup(buttons))
+    db.close()
+
+    print('[Predlozhka][photo_handler]Sending confirmation to source...')
+    update.message.reply_text('Ваш пост отправлен администратору.\nЕсли он будет опубликован - вы получите сообщение.')
+
+def audio_handler(update: Update, context: CallbackContext):
+    print('[Predlozhka][photo_handler]Файл получен, скачиваем...')
+    db = Session()
+    file = update.message.audio
+    # photo = update.message.photo[-1].get_file()
+    # path = 'temp/{}_{}'.format(random.randint(1, 100000000000), photo.file_path.split('/')[-1])
+    # photo.download(path)
+    path = context.bot.get_file(file.file_id).download('temp/' + file.file_name)
+    print(f'[Predlozhka][photo_handler]Изображение от {update.effective_user.first_name} ({update.effective_user.id}) скачивается, генерируется пост...')
+    post = Post(update.effective_user.id, path, update.message.caption, update.effective_user.first_name, 'audio')
+    db.add(post)
+    db.commit()
+    print('[Predlozhka][photo_handler]Отправка сообщения администратору...')
+    buttons = [
+        [InlineKeyboardButton('✅', callback_data=json.dumps({'post': post.post_id, 'action': 'accept'})),
+         InlineKeyboardButton('❌', callback_data=json.dumps({'post': post.post_id, 'action': 'decline'}))]
+    ]
+    updater.bot.send_audio(db.query(User).filter_by(is_admin=True).first().user_id, open(post.attachment_path, 'rb'),
                            f"{post.text}\n\nПост от {update.effective_user.first_name} ({update.effective_user.id})", reply_markup=InlineKeyboardMarkup(buttons))
     db.close()
 
@@ -136,10 +208,26 @@ def callback_handler(update: Update, context: CallbackContext):
             print('[Predlozhka][callback_handler]Найдено сообщение')
             if data['action'] == 'accept':
                 print('[Predlozhka][callback_handler]Действие: принять')
-                if post.text is None:
-                    updater.bot.send_photo(target_channel, open(post.attachment_path, 'rb'), caption=f"Пост от {post.owner_name}")
-                else:
-                    updater.bot.send_photo(target_channel, open(post.attachment_path, 'rb'), caption=f"{post.text} \n \n Пост от {post.owner_name}")
+                if post.file_type == "img":
+                    if post.text is None:
+                        updater.bot.send_photo(target_channel, open(post.attachment_path, 'rb'), caption=f"Пост от {post.owner_name}")
+                    else:
+                        updater.bot.send_photo(target_channel, open(post.attachment_path, 'rb'), caption=f"{post.text} \n \n Пост от {post.owner_name}")
+                if post.file_type == "file":
+                    if post.text is None:
+                        updater.bot.send_document(target_channel, open(post.attachment_path, 'rb'), caption=f"Пост от {post.owner_name}")
+                    else:
+                        updater.bot.send_document(target_channel, open(post.attachment_path, 'rb'), caption=f"{post.text} \n \n Пост от {post.owner_name}")
+                if post.file_type == "video":
+                    if post.text is None:
+                        updater.bot.send_video(target_channel, open(post.attachment_path, 'rb'), caption=f"Пост от {post.owner_name}")
+                    else:
+                        updater.bot.send_video(target_channel, open(post.attachment_path, 'rb'), caption=f"{post.text} \n \n Пост от {post.owner_name}")
+                if post.file_type == "audio":
+                    if post.text is None:
+                        updater.bot.send_audio(target_channel, open(post.attachment_path, 'rb'), caption=f"Пост от {post.owner_name}")
+                    else:
+                        updater.bot.send_audio(target_channel, open(post.attachment_path, 'rb'), caption=f"{post.text} \n \n Пост от {post.owner_name}")
                 update.callback_query.answer('✅ Пост успешно отправлен')
                 updater.bot.send_message(post.owner_id, 'Предложеный вами пост был опубликован')
             elif data['action'] == 'decline':
@@ -165,6 +253,9 @@ print('[Predlozhka]Все, что связано с кодом, сделано. 
 updater.dispatcher.add_handler(CommandHandler('start', start))
 updater.dispatcher.add_handler(CommandHandler('init', initialize))
 updater.dispatcher.add_handler(MessageHandler(Filters.photo & Filters.private, photo_handler))
+updater.dispatcher.add_handler(MessageHandler(Filters.document & Filters.private, data_handler))
+updater.dispatcher.add_handler(MessageHandler(Filters.video & Filters.private, video_handler))
+updater.dispatcher.add_handler(MessageHandler(Filters.audio & Filters.private, audio_handler))
 updater.dispatcher.add_handler(CallbackQueryHandler(callback_handler))
 
 updater.start_polling()
