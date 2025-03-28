@@ -11,8 +11,6 @@ from telegram.ext import Updater, CallbackContext, CommandHandler, CallbackQuery
 from sqlhelper import Base, User, Post, Settings
 
 
-
-
 # Инициализация логгера
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.WARN)
 
@@ -127,9 +125,6 @@ def data_handler(update: Update, context: CallbackContext):
     print('[Predlozhka][data_handler]Файл получен, скачиваем...')
     db = Session()
     file = update.message.document
-    # photo = update.message.photo[-1].get_file()
-    # path = 'temp/{}_{}'.format(random.randint(1, 100000000000), photo.file_path.split('/')[-1])
-    # photo.download(path)
     path = context.bot.get_file(file.file_id).download('temp/{}_{}'.format(random.randint(1, 100000000000), file.get_file().file_path.split('/')[-1]))
     print(f'[Predlozhka][data_handler]Файл от {update.effective_user.first_name} ({update.effective_user.id}) скачивается, генерируется пост...')
     post = Post(update.effective_user.id, path, update.message.caption, update.effective_user.first_name, 'file')
@@ -151,9 +146,6 @@ def video_handler(update: Update, context: CallbackContext):
     print('[Predlozhka][video_handler]Видео получено, скачиваем...')
     db = Session()
     file = update.message.video
-    # photo = update.message.photo[-1].get_file()
-    # path = 'temp/{}_{}'.format(random.randint(1, 100000000000), photo.file_path.split('/')[-1])
-    # photo.download(path)
     path = context.bot.get_file(file.file_id).download('temp/{}_{}'.format(random.randint(1, 100000000000), file.get_file().file_path.split('/')[-1]))
     print(f'[Predlozhka][video_handler]Видео от {update.effective_user.first_name} ({update.effective_user.id}) скачивается, генерируется пост...')
     post = Post(update.effective_user.id, path, update.message.caption, update.effective_user.first_name, 'video')
@@ -175,9 +167,6 @@ def audio_handler(update: Update, context: CallbackContext):
     print('[Predlozhka][audio_handler]Аудио получено, скачиваем...')
     db = Session()
     file = update.message.audio
-    # photo = update.message.photo[-1].get_file()
-    # path = 'temp/{}_{}'.format(random.randint(1, 100000000000), photo.file_path.split('/')[-1])
-    # photo.download(path)
     path = context.bot.get_file(file.file_id).download('temp/{}_{}'.format(random.randint(1, 100000000000), file.get_file().file_path.split('/')[-1]))
     print(f'[Predlozhka][audio_handler]Аудио от {update.effective_user.first_name} ({update.effective_user.id}) скачивается, генерируется пост...')
     post = Post(update.effective_user.id, path, update.message.caption, update.effective_user.first_name, 'audio')
@@ -199,9 +188,6 @@ def gif_handler(update: Update, context: CallbackContext):
     print('[Predlozhka][gif_handler]GIF получен, скачиваем...')
     db = Session()
     file = update.message.animation
-    # photo = update.message.photo[-1].get_file()
-    # path = 'temp/{}_{}'.format(random.randint(1, 100000000000), photo.file_path.split('/')[-1])
-    # photo.download(path)
     path = context.bot.get_file(file.file_id).download('temp/{}_{}'.format(random.randint(1, 100000000000), file.get_file().file_path.split('/')[-1]))
     print(f'[Predlozhka][gif_handler]gif от {update.effective_user.first_name} ({update.effective_user.id}) скачивается, генерируется пост...')
     post = Post(update.effective_user.id, path, update.message.caption, update.effective_user.first_name, 'gif')
@@ -223,9 +209,6 @@ def voice_handler(update: Update, context: CallbackContext):
     print('[Predlozhka][voice_handler]Голосовое сообщение получен, скачиваем...')
     db = Session()
     file = update.message.voice
-    # photo = update.message.photo[-1].get_file()
-    # path = 'temp/{}_{}'.format(random.randint(1, 100000000000), photo.file_path.split('/')[-1])
-    # photo.download(path)
     path = context.bot.get_file(file.file_id).download('temp/{}_{}'.format(random.randint(1, 100000000000), file.get_file().file_path.split('/')[-1]))
     print(f'[Predlozhka][voice_handler]Голосовое сообщение от {update.effective_user.first_name} ({update.effective_user.id}) скачивается, генерируется пост...')
     post = Post(update.effective_user.id, path, update.message.caption, update.effective_user.first_name, 'voice')
@@ -256,38 +239,22 @@ def callback_handler(update: Update, context: CallbackContext):
             print('[Predlozhka][callback_handler]Найдено сообщение')
             if data['action'] == 'accept':
                 print('[Predlozhka][callback_handler]Действие: принять')
-                post_data = f"Пост от <code>{post.owner_name}</code>"
-                post_data_full = f"{post.text} \n \nПост от <code>{post.owner_name}</code>"
+
+                args = [target_channel, open(post.attachment_path, "rb")]
+                kwargs = {"caption": f"Пост от <code>{post.owner_name}</code>" if post.text is None else f"{post.text} \n \nПост от <code>{post.owner_name}</code>",
+                          "parse_mode": "HTML"}
                 if post.file_type == "img":
-                    if post.text is None:
-                        updater.bot.send_photo(target_channel, open(post.attachment_path, 'rb'), caption=post_data, parse_mode='HTML')
-                    else:
-                        updater.bot.send_photo(target_channel, open(post.attachment_path, 'rb'), caption=post_data_full, parse_mode='HTML')
+                    updater.bot.send_photo(*args, **kwargs)
                 if post.file_type == "file":
-                    if post.text is None:
-                        updater.bot.send_document(target_channel, open(post.attachment_path, 'rb'), caption=post_data, parse_mode='HTML')
-                    else:
-                        updater.bot.send_document(target_channel, open(post.attachment_path, 'rb'), caption=post_data_full, parse_mode='HTML')
+                    updater.bot.send_document(*args, **kwargs)
                 if post.file_type == "video":
-                    if post.text is None:
-                        updater.bot.send_video(target_channel, open(post.attachment_path, 'rb'), caption=post_data, parse_mode='HTML')
-                    else:
-                        updater.bot.send_video(target_channel, open(post.attachment_path, 'rb'), caption=post_data_full, parse_mode='HTML')
+                    updater.bot.send_video(*args, **kwargs)
                 if post.file_type == "audio":
-                    if post.text is None:
-                        updater.bot.send_audio(target_channel, open(post.attachment_path, 'rb'), caption=post_data, parse_mode='HTML')
-                    else:
-                        updater.bot.send_audio(target_channel, open(post.attachment_path, 'rb'), caption=post_data_full, parse_mode='HTML')
+                    updater.bot.send_audio(*args, **kwargs)
                 if post.file_type == "gif":
-                    if post.text is None:
-                        updater.bot.send_animation(target_channel, open(post.attachment_path, 'rb'), caption=post_data, parse_mode='HTML')
-                    else:
-                        updater.bot.send_animation(target_channel, open(post.attachment_path, 'rb'), caption=post_data_full, parse_mode='HTML')
+                    updater.bot.send_animation(*args, **kwargs)
                 if post.file_type == "voice":
-                    if post.text is None:
-                        updater.bot.send_voice(target_channel, open(post.attachment_path, 'rb'), caption=post_data, parse_mode='HTML')
-                    else:
-                        updater.bot.send_voice(target_channel, open(post.attachment_path, 'rb'), caption=post_data_full, parse_mode='HTML')
+                    updater.bot.send_voice(*args, **kwargs)
                 update.callback_query.answer('✅ Пост успешно отправлен')
                 updater.bot.send_message(post.owner_id, 'Предложеный вами пост был опубликован')
             elif data['action'] == 'decline':
